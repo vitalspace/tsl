@@ -8,13 +8,13 @@
   extend({ MeshStandardNodeMaterial, MeshBasicNodeMaterial, uv })
 
   let emissiveIntensity = $state(0.5)
-  let lightningIntensity = $state(1.2)
-  let flashFrequency = $state(1.8)
+  let lightningIntensity = $state(2.0)
+  let flashFrequency = $state(0.8)
 </script>
 
 <div>
   <Pane
-    title="Lightning Sky Controls"
+    title="Storm Sky Controls"
     position="fixed"
   >
     <Slider
@@ -27,14 +27,14 @@
     <Slider
       bind:value={lightningIntensity}
       label="Lightning Intensity"
-      max={3}
+      max={5}
       min={0}
       step={0.1}
     />
     <Slider
       bind:value={flashFrequency}
       label="Flash Frequency"
-      max={5}
+      max={3}
       min={0.1}
       step={0.1}
     />
@@ -59,6 +59,6 @@
 <style>
   div {
     height: 100%;
-    background: #0a0a0f;
+    background: #050510;
   }
 </style>

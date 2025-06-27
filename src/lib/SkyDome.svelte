@@ -7,7 +7,7 @@
     time,
     lightningIntensity = 1.0,
     flashFrequency = 1.5,
-    skyColor = [0.1, 0.2, 0.4],
+    skyColor = [0.1, 0.15, 0.3],
     lightningColor = [0.9, 0.95, 1.0]
   }: { 
     time: any,
@@ -31,10 +31,10 @@
 </script>
 
 <T.Mesh
-  scale={[50, 50, 50]}
+  scale={[100, 100, 100]}
   rotation={[0, 0, 0]}
 >
-  <T.SphereGeometry args={[1, 32, 16]} />
+  <T.SphereGeometry args={[1, 64, 32]} />
   <T.MeshBasicNodeMaterial
     side={1}
     colorNode={skyLightningShader(

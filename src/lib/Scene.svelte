@@ -42,12 +42,12 @@
   const texture = useTexture('/pixel-sky.png')
 </script>
 
-<!-- Domo del cielo con rayos -->
+<!-- Domo del cielo con rayos realistas -->
 <SkyDome 
   time={uTime} 
   {lightningIntensity}
   {flashFrequency}
-  skyColor={[0.05, 0.1, 0.2]}
+  skyColor={[0.1, 0.15, 0.3]}
   lightningColor={[0.9, 0.95, 1.0]}
 />
 
@@ -58,13 +58,13 @@
   <OrbitControls />
 </T.PerspectiveCamera>
 
-<!-- Luz ambiental suave -->
-<T.AmbientLight intensity={0.3} />
+<!-- Luz ambiental muy tenue para ambiente tormentoso -->
+<T.AmbientLight intensity={0.1} color="#2a3a5c" />
 
 <!-- Luz direccional que simula relámpagos -->
 <T.DirectionalLight 
   position={[5, 10, 5]} 
-  intensity={0.5}
+  intensity={0.3}
   color="#ffffff"
 />
 
@@ -87,16 +87,16 @@
   </T.Mesh>
 {/await}
 
-<!-- Plano del suelo para mejor contexto -->
+<!-- Plano del suelo más oscuro para ambiente tormentoso -->
 <T.Mesh
   rotation.x={-Math.PI / 2}
   position.y={-2}
 >
   <T.PlaneGeometry args={[20, 20]} />
   <T.MeshStandardNodeMaterial
-    color="#1a1a2e"
-    roughness={0.8}
-    metalness={0.1}
-    emissiveNode={vec3(0.01, 0.02, 0.05)}
+    color="#0a0a15"
+    roughness={0.9}
+    metalness={0.0}
+    emissiveNode={vec3(0.005, 0.01, 0.02)}
   />
 </T.Mesh>
