@@ -219,14 +219,12 @@
 </script>
 
 {#await perlinTexture then perlinTex}
-  {@const uPerlinTex = uniform(perlinTex)}
-  
   <!-- Tornado Floor -->
   <T.Mesh rotation.x={-Math.PI * 0.5}>
     <T.PlaneGeometry args={[2, 2]} />
     <T.MeshBasicNodeMaterial 
       transparent={true}
-      outputNode={floorMaterial(uPerlinTex)}
+      outputNode={floorMaterial(perlinTex)}
     />
   </T.Mesh>
 
@@ -242,7 +240,7 @@
         uParabolAmplitude.sub(0.05), 
         time.mul(uTimeScale)
       )}
-      outputNode={emissiveMaterial(uPerlinTex)}
+      outputNode={emissiveMaterial(perlinTex)}
     />
   </T.Mesh>
 
@@ -258,7 +256,7 @@
         uParabolAmplitude, 
         time.mul(uTimeScale)
       )}
-      outputNode={darkMaterial(uPerlinTex)}
+      outputNode={darkMaterial(perlinTex)}
     />
   </T.Mesh>
 {/await}
