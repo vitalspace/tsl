@@ -3,8 +3,9 @@
   import { Canvas, extend } from '@threlte/core'
   import { Pane, Slider, Color } from 'svelte-tweakpane-ui'
   import { MeshStandardNodeMaterial, MeshBasicNodeMaterial, WebGPURenderer } from 'three/webgpu'
+  import { uv } from 'three/tsl'
 
-  extend({ MeshStandardNodeMaterial, MeshBasicNodeMaterial })
+  extend({ MeshStandardNodeMaterial, MeshBasicNodeMaterial, uv })
 
   let emissiveIntensity = $state(0.5)
   let lightningIntensity = $state(1.2)
