@@ -1,42 +1,64 @@
 <script lang="ts">
-  import Scene from './lib/Scene.svelte'
+  import TornadoScene from './lib/TornadoScene.svelte'
   import { Canvas, extend } from '@threlte/core'
   import { Pane, Slider, Color } from 'svelte-tweakpane-ui'
   import { MeshStandardNodeMaterial, MeshBasicNodeMaterial, WebGPURenderer } from 'three/webgpu'
-  import { uv } from 'three/tsl'
+  import { uv, time, positionLocal, texture, luminance, color } from 'three/tsl'
 
-  extend({ MeshStandardNodeMaterial, MeshBasicNodeMaterial, uv })
+  extend({ 
+    MeshStandardNodeMaterial, 
+    MeshBasicNodeMaterial, 
+    uv, 
+    time, 
+    positionLocal, 
+    texture, 
+    luminance, 
+    color 
+  })
 
-  let emissiveIntensity = $state(0.5)
-  let lightningIntensity = $state(2.0)
-  let flashFrequency = $state(0.8)
+  let emissiveColor = $state('#ff8b4d')
+  let timeScale = $state(0.2)
+  let parabolStrength = $state(1)
+  let parabolOffset = $state(0.3)
+  let parabolAmplitude = $state(0.2)
 </script>
 
 <div>
   <Pane
-    title="Storm Sky Controls"
+    title="Tornado VFX Controls"
     position="fixed"
   >
+    <Color
+      bind:value={emissiveColor}
+      label="Emissive Color"
+    />
     <Slider
-      bind:value={emissiveIntensity}
-      label="Sphere Emissive"
+      bind:value={timeScale}
+      label="Time Scale"
+      max={1}
+      min={-1}
+      step={0.01}
+    />
+    <Slider
+      bind:value={parabolStrength}
+      label="Parabola Strength"
       max={2}
       min={0}
-      step={0.1}
+      step={0.01}
     />
     <Slider
-      bind:value={lightningIntensity}
-      label="Lightning Intensity"
-      max={5}
+      bind:value={parabolOffset}
+      label="Parabola Offset"
+      max={1}
       min={0}
-      step={0.1}
+      step={0.01}
     />
     <Slider
-      bind:value={flashFrequency}
-      label="Flash Frequency"
-      max={3}
-      min={0.1}
-      step={0.1}
+      bind:value={parabolAmplitude}
+      label="Parabola Amplitude"
+      max={2}
+      min={0}
+      step={0.01}
     />
   </Pane>
   <Canvas
@@ -48,10 +70,12 @@
       })
     }}
   >
-    <Scene 
-      {emissiveIntensity} 
-      {lightningIntensity}
-      {flashFrequency}
+    <TornadoScene 
+      {emissiveColor}
+      {timeScale}
+      {parabolStrength}
+      {parabolOffset}
+      {parabolAmplitude}
     />
   </Canvas>
 </div>
@@ -59,6 +83,6 @@
 <style>
   div {
     height: 100%;
-    background: #050510;
+    background: #201919;
   }
 </style>
