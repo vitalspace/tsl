@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { Fn, cos, float, uniform, vec4, vec3 } from 'three/tsl'
+  import { Fn, cos, float, uniform, vec4, vec3, mix } from 'three/tsl'
   import type { NodeRepresentation } from 'three/tsl'
   import { T, useTask } from '@threlte/core'
   import { useTexture, OrbitControls } from '@threlte/extras'
