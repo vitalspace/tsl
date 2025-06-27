@@ -1,0 +1,32 @@
+{
+  "name": "tsl",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.1.0",
+    "@tsconfig/svelte": "^5.0.4",
+    "svelte": "^5.34.7",
+    "svelte-check": "^4.2.2",
+    "typescript": "~5.8.3",
+    "vite": "^7.0.0"
+  },
+  "dependencies": {
+    "@dimforge/rapier3d-compat": "^0.17.3",
+    "@theatre/core": "^0.7.2",
+    "@theatre/studio": "^0.7.2",
+    "@threlte/core": "^8.0.5",
+    "@threlte/extras": "^9.4.0",
+    "@threlte/rapier": "^3.1.4",
+    "@threlte/theatre": "^3.0.4",
+    "@types/three": "^0.177.0",
+    "svelte-tweakpane-ui": "^1.5.8",
+    "three": "^0.177.0"
+  }
+}
