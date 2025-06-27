@@ -1,7 +1,7 @@
 <script lang="ts">
   import { T } from '@threlte/core'
   import { skyLightningShader } from './shaders/LightningShader'
-  import { uniform, vec3 } from 'three/tsl'
+  import { uniform, vec3, uv } from 'three/tsl'
 
   let { 
     time,
@@ -38,7 +38,7 @@
   <T.MeshBasicNodeMaterial
     side={1}
     colorNode={skyLightningShader(
-      T.uv(),
+      uv(),
       time,
       uLightningIntensity,
       uFlashFrequency,
