@@ -3,7 +3,36 @@
   import { Canvas, extend } from '@threlte/core'
   import { Pane, Slider, Color } from 'svelte-tweakpane-ui'
   import { MeshStandardNodeMaterial, MeshBasicNodeMaterial, WebGPURenderer } from 'three/webgpu'
-  import { uv, time, positionLocal, texture, luminance, color } from 'three/tsl'
+  import { 
+    uv, 
+    time, 
+    positionLocal, 
+    texture, 
+    luminance, 
+    color,
+    vec2,
+    vec3,
+    vec4,
+    float,
+    uniform,
+    sin,
+    cos,
+    atan,
+    PI,
+    PI2,
+    oneMinus,
+    min,
+    smoothstep,
+    step,
+    pow,
+    add,
+    mul,
+    sub,
+    div,
+    length,
+    remap,
+    Fn
+  } from 'three/tsl'
 
   extend({ 
     MeshStandardNodeMaterial, 
@@ -13,7 +42,29 @@
     positionLocal, 
     texture, 
     luminance, 
-    color 
+    color,
+    vec2,
+    vec3,
+    vec4,
+    float,
+    uniform,
+    sin,
+    cos,
+    atan,
+    PI,
+    PI2,
+    oneMinus,
+    min,
+    smoothstep,
+    step,
+    pow,
+    add,
+    mul,
+    sub,
+    div,
+    length,
+    remap,
+    Fn
   })
 
   let emissiveColor = $state('#ff8b4d')

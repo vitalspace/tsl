@@ -21,9 +21,18 @@
     min,
     smoothstep,
     luminance,
-    color
+    color,
+    step,
+    pow,
+    add,
+    mul,
+    sub,
+    div,
+    length,
+    remap
   } from 'three/tsl'
   import type { NodeRepresentation } from 'three/tsl'
+  import * as THREE from 'three'
 
   let { 
     emissiveColor = '#ff8b4d',
@@ -57,15 +66,18 @@
   // Load perlin noise texture
   const perlinTexture = useTexture('/textures/noises/perlin/rgb-256x256.png')
 
+  // Create cylinder geometry with proper translation
+  const cylinderGeometry = new THREE.CylinderGeometry(1, 1, 1, 20, 20, true)
+  cylinderGeometry.translate(0, 0.5, 0)
+
   // TSL Functions
   const toRadialUv = Fn(([uv, multiplier, rotation, offset]: [NodeRepresentation, NodeRepresentation, NodeRepresentation, NodeRepresentation]) => {
     const centeredUv = uv.sub(0.5)
-    const distanceToCenter = centeredUv.length()
+    const distanceToCenter = length(centeredUv)
     const angle = atan(centeredUv.y, centeredUv.x)
-    const radialUv = vec2(angle.add(PI).div(PI2), distanceToCenter)
-    radialUv.mulAssign(multiplier)
-    radialUv.x.addAssign(rotation)
-    radialUv.y.addAssign(offset)
+    let radialUv = vec2(angle.add(PI).div(PI2), distanceToCenter)
+    radialUv = radialUv.mul(multiplier)
+    radialUv = vec2(radialUv.x.add(rotation), radialUv.y.add(offset))
     return radialUv
   })
 
@@ -81,10 +93,10 @@
     const elevation = position.y
 
     // Parabola
-    const radius = parabolStrength.mul(position.y.sub(parabolOffset)).pow(2).add(parabolAmplitude)
+    let radius = parabolStrength.mul(position.y.sub(parabolOffset)).pow(2).add(parabolAmplitude)
 
     // Turbulences
-    radius.addAssign(sin(elevation.sub(time).mul(20).add(angle.mul(2))).mul(0.05))
+    radius = radius.add(sin(elevation.sub(time).mul(20).add(angle.mul(2))).mul(0.05))
 
     const twistedPosition = vec3(
       cos(angle).mul(radius),
@@ -94,6 +106,116 @@
 
     return twistedPosition
   })
+
+  // Floor material function
+  const floorMaterial = Fn(() => {
+    const scaledTime = time.mul(uTimeScale)
+
+    // Noise 1
+    let noise1Uv = toRadialUv(
+      uv(),
+      vec2(0.5, 0.5),
+      scaledTime,
+      scaledTime
+    )
+    noise1Uv = toSkewedUv(noise1Uv, vec2(-1, 0))
+    noise1Uv = noise1Uv.mul(vec2(4, 1))
+    
+    const noise1 = texture(perlinTexture, noise1Uv, 1).r.remap(0.45, 0.7)
+
+    // Noise 2
+    let noise2Uv = toRadialUv(
+      uv(),
+      vec2(2, 8),
+      scaledTime.mul(2),
+      scaledTime.mul(8)
+    )
+    noise2Uv = toSkewedUv(noise2Uv, vec2(-0.25, 0))
+    noise2Uv = noise2Uv.mul(vec2(2, 0.25))
+    
+    const noise2 = texture(perlinTexture, noise2Uv, 1).b.remap(0.45, 0.7)
+
+    // Outer fade
+    const distanceToCenter = uv().sub(0.5)
+    const outerFade = min(
+      oneMinus(length(distanceToCenter)).smoothstep(0.5, 0.9),
+      length(distanceToCenter).smoothstep(0, 0.2)
+    )
+
+    // Effect
+    const effect = noise1.mul(noise2).mul(outerFade)
+
+    // Output
+    return vec4(
+      uEmissiveColor.mul(step(float(0.2), effect)).mul(3), // Emissive
+      effect.smoothstep(0, 0.01) // Alpha
+    )
+  })
+
+  // Emissive cylinder material function
+  const emissiveMaterial = Fn(() => {
+    const scaledTime = time.mul(uTimeScale)
+
+    // Noise 1
+    let noise1Uv = uv().add(vec2(scaledTime, scaledTime.negate()))
+    noise1Uv = toSkewedUv(noise1Uv, vec2(-1, 0))
+    noise1Uv = noise1Uv.mul(vec2(2, 0.25))
+    const noise1 = texture(perlinTexture, noise1Uv, 1).r.remap(0.45, 0.7)
+
+    // Noise 2
+    let noise2Uv = uv().add(vec2(scaledTime.mul(0.5), scaledTime.negate()))
+    noise2Uv = toSkewedUv(noise2Uv, vec2(-1, 0))
+    noise2Uv = noise2Uv.mul(vec2(5, 1))
+    const noise2 = texture(perlinTexture, noise2Uv, 1).g.remap(0.45, 0.7)
+
+    // Outer fade
+    const outerFade = min(
+      uv().y.smoothstep(0, 0.1),
+      oneMinus(uv().y).smoothstep(0, 0.4)
+    )
+
+    // Effect
+    const effect = noise1.mul(noise2).mul(outerFade)
+
+    const emissiveColorLuminance = luminance(uEmissiveColor)
+
+    // Output
+    return vec4(
+      uEmissiveColor.mul(1.2).div(emissiveColorLuminance), // emissive
+      effect.smoothstep(0, 0.1) // alpha
+    )
+  })
+
+  // Dark cylinder material function
+  const darkMaterial = Fn(() => {
+    const scaledTime = time.mul(uTimeScale).add(123.4)
+
+    // Noise 1
+    let noise1Uv = uv().add(vec2(scaledTime, scaledTime.negate()))
+    noise1Uv = toSkewedUv(noise1Uv, vec2(-1, 0))
+    noise1Uv = noise1Uv.mul(vec2(2, 0.25))
+    const noise1 = texture(perlinTexture, noise1Uv, 1).g.remap(0.45, 0.7)
+
+    // Noise 2
+    let noise2Uv = uv().add(vec2(scaledTime.mul(0.5), scaledTime.negate()))
+    noise2Uv = toSkewedUv(noise2Uv, vec2(-1, 0))
+    noise2Uv = noise2Uv.mul(vec2(5, 1))
+    const noise2 = texture(perlinTexture, noise2Uv, 1).b.remap(0.45, 0.7)
+
+    // Outer fade
+    const outerFade = min(
+      uv().y.smoothstep(0, 0.2),
+      oneMinus(uv().y).smoothstep(0, 0.4)
+    )
+
+    // Effect
+    const effect = noise1.mul(noise2).mul(outerFade)
+
+    return vec4(
+      vec3(0),
+      effect.smoothstep(0, 0.01)
+    )
+  })
 </script>
 
 {#await perlinTexture then perlinTex}
@@ -102,59 +224,12 @@
     <T.PlaneGeometry args={[2, 2]} />
     <T.MeshBasicNodeMaterial 
       transparent={true}
-      outputNode={Fn(() => {
-        const scaledTime = time.mul(uTimeScale)
-
-        // Noise 1
-        const noise1Uv = toRadialUv(
-          uv(),
-          vec2(0.5, 0.5),
-          scaledTime,
-          scaledTime
-        )
-        noise1Uv.assign(toSkewedUv(
-          noise1Uv,
-          vec2(-1, 0)
-        ))
-        noise1Uv.mulAssign(vec2(4, 1))
-        const noise1 = texture(perlinTex, noise1Uv, 1).r.remap(0.45, 0.7)
-
-        // Noise 2
-        const noise2Uv = toRadialUv(
-          uv(),
-          vec2(2, 8),
-          scaledTime.mul(2),
-          scaledTime.mul(8)
-        )
-        noise2Uv.assign(toSkewedUv(
-          noise2Uv,
-          vec2(-0.25, 0)
-        ))
-        noise2Uv.mulAssign(vec2(2, 0.25))
-        const noise2 = texture(perlinTex, noise2Uv, 1).b.remap(0.45, 0.7)
-
-        // Outer fade
-        const distanceToCenter = uv().sub(0.5)
-        const outerFade = min(
-          oneMinus(distanceToCenter.length()).smoothstep(0.5, 0.9),
-          distanceToCenter.length().smoothstep(0, 0.2)
-        )
-
-        // Effect
-        const effect = noise1.mul(noise2).mul(outerFade)
-
-        // Output
-        return vec4(
-          uEmissiveColor.mul(float(0.2).step(effect)).mul(3), // Emissive
-          effect.smoothstep(0, 0.01) // Alpha
-        )
-      })()}
+      outputNode={floorMaterial()}
     />
   </T.Mesh>
 
   <!-- Tornado Emissive Cylinder -->
-  <T.Mesh>
-    <T.CylinderGeometry args={[1, 1, 1, 20, 20, true]} />
+  <T.Mesh geometry={cylinderGeometry}>
     <T.MeshBasicNodeMaterial 
       transparent={true}
       side={2}
@@ -165,50 +240,12 @@
         uParabolAmplitude.sub(0.05), 
         time.mul(uTimeScale)
       )}
-      outputNode={Fn(() => {
-        const scaledTime = time.mul(uTimeScale)
-
-        // Noise 1
-        const noise1Uv = uv().add(vec2(scaledTime, scaledTime.negate()))
-        noise1Uv.assign(toSkewedUv(
-          noise1Uv,
-          vec2(-1, 0)
-        ))
-        noise1Uv.mulAssign(vec2(2, 0.25))
-        const noise1 = texture(perlinTex, noise1Uv, 1).r.remap(0.45, 0.7)
-
-        // Noise 2
-        const noise2Uv = uv().add(vec2(scaledTime.mul(0.5), scaledTime.negate()))
-        noise2Uv.assign(toSkewedUv(
-          noise2Uv,
-          vec2(-1, 0)
-        ))
-        noise2Uv.mulAssign(vec2(5, 1))
-        const noise2 = texture(perlinTex, noise2Uv, 1).g.remap(0.45, 0.7)
-
-        // Outer fade
-        const outerFade = min(
-          uv().y.smoothstep(0, 0.1),
-          oneMinus(uv().y).smoothstep(0, 0.4)
-        )
-
-        // Effect
-        const effect = noise1.mul(noise2).mul(outerFade)
-
-        const emissiveColorLuminance = luminance(uEmissiveColor)
-
-        // Output
-        return vec4(
-          uEmissiveColor.mul(1.2).div(emissiveColorLuminance), // emissive
-          effect.smoothstep(0, 0.1) // alpha
-        )
-      })()}
+      outputNode={emissiveMaterial()}
     />
   </T.Mesh>
 
   <!-- Tornado Dark Cylinder -->
-  <T.Mesh>
-    <T.CylinderGeometry args={[1, 1, 1, 20, 20, true]} />
+  <T.Mesh geometry={cylinderGeometry}>
     <T.MeshBasicNodeMaterial 
       transparent={true}
       side={2}
@@ -219,41 +256,7 @@
         uParabolAmplitude, 
         time.mul(uTimeScale)
       )}
-      outputNode={Fn(() => {
-        const scaledTime = time.mul(uTimeScale).add(123.4)
-
-        // Noise 1
-        const noise1Uv = uv().add(vec2(scaledTime, scaledTime.negate()))
-        noise1Uv.assign(toSkewedUv(
-          noise1Uv,
-          vec2(-1, 0)
-        ))
-        noise1Uv.mulAssign(vec2(2, 0.25))
-        const noise1 = texture(perlinTex, noise1Uv, 1).g.remap(0.45, 0.7)
-
-        // Noise 2
-        const noise2Uv = uv().add(vec2(scaledTime.mul(0.5), scaledTime.negate()))
-        noise2Uv.assign(toSkewedUv(
-          noise2Uv,
-          vec2(-1, 0)
-        ))
-        noise2Uv.mulAssign(vec2(5, 1))
-        const noise2 = texture(perlinTex, noise2Uv, 1).b.remap(0.45, 0.7)
-
-        // Outer fade
-        const outerFade = min(
-          uv().y.smoothstep(0, 0.2),
-          oneMinus(uv().y).smoothstep(0, 0.4)
-        )
-
-        // Effect
-        const effect = noise1.mul(noise2).mul(outerFade)
-
-        return vec4(
-          vec3(0),
-          effect.smoothstep(0, 0.01)
-        )
-      })()}
+      outputNode={darkMaterial()}
     />
   </T.Mesh>
 {/await}
